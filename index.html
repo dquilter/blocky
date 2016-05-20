@@ -47,16 +47,20 @@
 			//  Now let's create two ledges
 			var ledge = platforms.create(400, 400, 'ground');
 			ledge.body.immovable = true;
+			
+			// Create guard
+			guard = game.add.sprite(450, game.world.height - 150, 'star')
+			guardObj = new Guard(guard);
+			game.physics.arcade.enable(guard);
+			guard.body.collideWorldBounds = true;
 
 			// The player and its settings
 			player = game.add.sprite(32, game.world.height - 150, 'star');
-
 			//  We need to enable physics on the player
 			game.physics.arcade.enable(player);
-
 			//  Player physics properties. Give the little guy a slight bounce.
 			player.body.bounce.y = 0.2;
-			player.body.gravity.y = 300;
+			player.body.gravity.y = 450;
 			player.body.collideWorldBounds = true;
 
 			cursors = game.input.keyboard.createCursorKeys();
@@ -66,7 +70,6 @@
 
 			//  Collide the player and the stars with the platforms
 			game.physics.arcade.collide(player, platforms);
-
 			//  Reset the players velocity (movement)
 			player.body.velocity.x = 0;
 
@@ -92,6 +95,23 @@
 				player.body.velocity.y = -350;
 			}
 
+			//  Collide the guard and the stars with the platforms
+			game.physics.arcade.collide(guard, platforms);
+			guard.body.velocity.x = 0;
+			guardObj.patrol();
+
+		}
+		
+		function patrol(guard) {
+		}
+		
+		var Guard = function(phaserRef) {
+			this.patrolDir = -1;
+			this.phaserRef = phaserRef;
+			
+			this.patrol = function() {
+				this.phaserRef.body.velocity.x = 100 * this.patrolDir;
+			}
 		}
 	</script>
 
