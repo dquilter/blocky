@@ -31,28 +31,25 @@
 			//  We're going to be using physics, so enable the Arcade Physics system
 			game.physics.startSystem(Phaser.Physics.ARCADE);
 
-			//  The platforms group contains the ground and the 2 ledges we can jump on
-			platforms = game.add.group();
-
+			//  The platforms group contains the ground and the platforms we can jump on
+			platformsGroup = game.add.group();
 			//  We will enable physics for any object that is created in this group
-			platforms.enableBody = true;
+			platformsGroup.enableBody = true;
 
 			// Here we create the ground.
-			var ground = platforms.create(0, game.world.height - 64, 'ground');
+			var ground = platformsGroup.create(0, game.world.height - 64, 'ground');
 			//  Scale it to fit the width of the game (the original sprite is 400x32 in size)
 			ground.scale.setTo(2, 2);
 			//  This stops it from falling away when you jump on it
 			ground.body.immovable = true;
 
-			//  Now let's create two ledges
-			var ledge = platforms.create(400, 400, 'ground');
-			ledge.body.immovable = true;
+			//  Create a platform
+			var platform = new Platform();
 			
 			// Create guard
-			guard = game.add.sprite(450, game.world.height - 150, 'star')
-			guardObj = new Guard(guard);
-			game.physics.arcade.enable(guard);
-			guard.body.collideWorldBounds = true;
+			platformsArray.forEach(function(elem, index, array) {
+				var thisGuard = new Guard(elem);
+			});
 
 			// The player and its settings
 			player = game.add.sprite(32, game.world.height - 150, 'star');
@@ -69,7 +66,7 @@
 		function update() {
 
 			//  Collide the player and the stars with the platforms
-			game.physics.arcade.collide(player, platforms);
+			game.physics.arcade.collide(player, platformsGroup);
 			//  Reset the players velocity (movement)
 			player.body.velocity.x = 0;
 
@@ -96,21 +93,71 @@
 			}
 
 			//  Collide the guard and the stars with the platforms
-			game.physics.arcade.collide(guard, platforms);
-			guard.body.velocity.x = 0;
-			guardObj.patrol();
+			guards.forEach(function(elem, index, array) {
+				game.physics.arcade.collide(elem.phaserRef, platformsGroup);
+				game.physics.arcade.collide(elem.phaserRef, player);
+				elem.phaserRef.body.velocity.x = 0;
+				elem.patrol();
+			});
 
 		}
 		
-		function patrol(guard) {
+		var guards = [];
+		var platformsArray = [];
+		
+		var Platform = function() {
+			this.phaserRef = platformsGroup.create(400, 400, 'ground');
+			platformsArray.push(this)
+			
+			this.phaserRef.body.immovable = true;
+			this.platformBounds = [400 + 10, 400 + 400 - 10]
+			// [leftPos + 10, leftPos + platformLength - 10]
 		}
 		
-		var Guard = function(phaserRef) {
-			this.patrolDir = -1;
-			this.phaserRef = phaserRef;
+		var Guard = function(platform) {
+			// Set up phaser object and refs
+			this.phaserRef = game.add.sprite(450, game.world.height - 450, 'star');
+			guards.push(this)
 			
+			// Phaser settings
+			game.physics.arcade.enable(this.phaserRef);
+			this.phaserRef.body.gravity.y = 450;
+			this.phaserRef.body.collideWorldBounds = true;
+			
+			// Custom props
+			this.territory = platform;
+			this.patrolDir = -1; // -1 for left, 1 for right
+			this.patrolling = false;
+			
+			// Custom methods
 			this.patrol = function() {
-				this.phaserRef.body.velocity.x = 100 * this.patrolDir;
+				// Start patrolling after drop
+				if (this.patrolling === false && this.phaserRef.body.touching.down) {
+					this.patrolling = true;
+				}
+				
+				// Out of bounds left
+				if (this.patrolDir === -1 && this.phaserRef.position.x < this.territory.platformBounds[0]) {
+					this.reverseDir();
+				}
+				// Out of bounds right
+				if (this.patrolDir === 1 && this.phaserRef.position.x > this.territory.platformBounds[1]) {
+					this.reverseDir();
+				}
+				// Screen edge
+				if (this.phaserRef.body.blocked.left || this.phaserRef.body.blocked.right) {
+					this.reverseDir();
+				}
+				
+				if (this.patrolling === true) {
+					this.phaserRef.body.velocity.x = 100 * this.patrolDir;
+				}
+				
+			},
+			this.reverseDir = function() {
+				console.log('reverse');
+				console.log(this.patrolDir)
+				this.patrolDir = this.patrolDir * -1;
 			}
 		}
 	</script>
