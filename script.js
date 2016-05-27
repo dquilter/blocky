@@ -14,6 +14,9 @@ function create() {
 	//  We're going to be using physics, so enable the Arcade Physics system
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 
+	// addBlocky
+	makeBlocky();
+	
 	//  The platforms group contains the ground and the platforms we can jump on
 	platformsGroup = game.add.group();
 	//  We will enable physics for any object that is created in this group
@@ -64,6 +67,14 @@ function update() {
 
 }
 
+function makeBlocky() {
+	Phaser.Sprite.blockyColliding = false;
+	Phaser.Sprite.blockyCollide = function() {
+		
+	};
+	
+}
+
 var guardsArray = [];
 var platformsArray = [];
 var playersArray = []
@@ -76,6 +87,7 @@ function createPlayer(player) {
 	
 	//  Player physics properties
 	player.body.bounce.y = 0.2;
+	player.body.bounce.x = 1;
 	player.body.gravity.y = 450;
 	player.body.collideWorldBounds = true;
 	player.health = 4;
@@ -158,11 +170,39 @@ function createGuard(platform) {
 	
 	newGuard.playerCollide = function(guard, player) {
 		// this is Guard obj
-		console.log(this)
+		console.log(player)
 		newGuard.reverseDir();
 //		player.body.velocity.x = -20;
 //		player.body.velocity.y = -20;
 		player.damage(1);
 		console.log(player.health)
+		createBoom(player);
 	}
+}
+
+function createBoom(player) {
+	var position = player.position;
+	
+	var boom = game.add.text(position.x, position.y, 'BOOM!', {
+		fill: '#FFFFFF',
+		stroke: 'blue',
+		align: 'center',
+		fontSize: '22px'
+	});
+	
+	if(player.health === 0) {
+		boom.setText('You died...');
+		console.log(game)
+	}
+	
+	var fadeTimer = game.time.create();
+	var fadeTween = game.add.tween(boom).to( {alpha: 0}, 400);
+	
+	fadeTimer.start();
+	
+	fadeTimer.add(400, function() {
+		console.log('fadeMe');
+		fadeTween.start();
+	});
+	
 }
