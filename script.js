@@ -50,8 +50,7 @@ function update() {
 		//  Collide the player and the stars with the platforms
 		game.physics.arcade.collide(elem, platformsGroup);
 		//  Reset the players velocity (movement)
-		elem.body.velocity.x = 0;
-
+		elem.playerMovement();
 		elem.controlPlayer();
 	});
 
@@ -91,6 +90,9 @@ function createPlayer(player) {
 	player.body.gravity.y = 450;
 	player.body.collideWorldBounds = true;
 	player.health = 4;
+
+	player.isRebounding = false;
+	player.setEndRebound = null;
 	
 	console.log(player)
 	
@@ -111,6 +113,15 @@ function createPlayer(player) {
 		//  Allow the player to jump if they are touching the ground.
 		if (cursors.up.isDown && player.body.touching.down) {
 			player.body.velocity.y = -350;
+		}
+	}
+	player.playerMovement = function() {
+		if (!player.isRebounding) {
+			player.body.velocity.x = 0;
+		} else {
+			if (game.time.now > player.setEndRebound) {
+				player.isRebounding = false;
+			}
 		}
 	}
 }
@@ -169,13 +180,14 @@ function createGuard(platform) {
 	},
 	
 	newGuard.playerCollide = function(guard, player) {
-		// this is Guard obj
-		console.log(player)
 		newGuard.reverseDir();
-//		player.body.velocity.x = -20;
-//		player.body.velocity.y = -20;
+		
+		player.isRebounding = true;
+		player.setEndRebound = game.time.now + 250;
+		player.body.velocity.x = -100;
+		player.body.velocity.y = -50;
+		
 		player.damage(1);
-		console.log(player.health)
 		createBoom(player);
 	}
 }
