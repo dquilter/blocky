@@ -5,8 +5,10 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
 });
 
 function preload() {
-	game.load.image('ground', 'platform.png');
-	game.load.image('star', 'star.png');
+	game.load.image('ground', 'assets/platform.png');
+	game.load.image('star', 'assets/star.png');
+	game.load.spritesheet('blockySprite', 'assets/BlockySprite.png', 40, 40);
+	game.load.spritesheet('punch', 'assets/boom.png', 40, 40);
 }
 
 function create() {
@@ -14,6 +16,8 @@ function create() {
 	//  We're going to be using physics, so enable the Arcade Physics system
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 
+	game.stage.backgroundColor = '#FFF';
+	
 	// addBlocky
 	makeBlocky();
 	
@@ -39,7 +43,7 @@ function create() {
 	});
 
 	// Create the player
-	var player = game.add.sprite(32, game.world.height - 150, 'star');
+	var player = game.add.sprite(32, game.world.height - 150, 'blockySprite');
 	createPlayer(player)
 	cursors = game.input.keyboard.createCursorKeys();
 }
@@ -93,26 +97,35 @@ function createPlayer(player) {
 
 	player.isRebounding = false;
 	player.setEndRebound = null;
+
+	player.animations.add('walkLeft', [7, 8, 9, 8, 7, 10, 11, 10], 30);
+	player.animations.add('walkRight', [2, 3, 4, 3, 2, 5, 6, 5], 30);
 	
-	console.log(player)
+	console.log(player);
 	
 	player.controlPlayer = function() {
-		if (cursors.left.isDown) {
-			//  Move to the left
-			player.body.velocity.x = -150;
-			player.animations.play('left');
-		} else if (cursors.right.isDown) {
-			//  Move to the right
-			player.body.velocity.x = 150;
-			player.animations.play('right');
-		} else {
-			//  Stand still
-			player.animations.stop();
-			player.frame = 4;
-		}
-		//  Allow the player to jump if they are touching the ground.
-		if (cursors.up.isDown && player.body.touching.down) {
-			player.body.velocity.y = -350;
+		if(player.isRebounding === false) {
+			if (cursors.left.isDown) {
+				//  Move to the left
+				player.body.velocity.x = -150;
+				if (player.body.touching.down) {
+					player.animations.play('walkLeft');
+				}
+			} else if (cursors.right.isDown) {
+				//  Move to the right
+				player.body.velocity.x = 150;
+				if (player.body.touching.down) {
+					player.animations.play('walkRight');
+				}
+			} else {
+				//  Stand still
+				player.animations.stop();
+				player.frame = 0;
+			}
+			//  Allow the player to jump if they are touching the ground.
+			if (cursors.up.isDown && player.body.touching.down) {
+				player.body.velocity.y = -350;
+			}
 		}
 	}
 	player.playerMovement = function() {
