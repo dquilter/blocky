@@ -18,9 +18,6 @@ function create() {
 
 	game.stage.backgroundColor = '#FFF';
 	
-	// addBlocky
-	makeBlocky();
-	
 	//  The platforms group contains the ground and the platforms we can jump on
 	platformsGroup = game.add.group();
 	//  We will enable physics for any object that is created in this group
@@ -46,6 +43,9 @@ function create() {
 	var player = game.add.sprite(32, game.world.height - 150, 'blockySprite');
 	createPlayer(player)
 	cursors = game.input.keyboard.createCursorKeys();
+	fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+//	playerAttacksGroup = game.add.group();
 }
 
 function update() {
@@ -56,6 +56,7 @@ function update() {
 		//  Reset the players velocity (movement)
 		elem.playerMovement();
 		elem.controlPlayer();
+		elem.attack.testAttack();
 	});
 
 	//  Collide the guard and the stars with the platforms
@@ -66,21 +67,19 @@ function update() {
 		});
 		elem.body.velocity.x = 0;
 		elem.patrol();
+
+		playerAttacks.forEach(function(thisAttack) {
+			game.physics.arcade.overlap(elem, thisAttack, thisAttack.damageEnemy); 
+		});
 	});
-
-}
-
-function makeBlocky() {
-	Phaser.Sprite.blockyColliding = false;
-	Phaser.Sprite.blockyCollide = function() {
-		
-	};
 	
+
 }
 
 var guardsArray = [];
 var platformsArray = [];
-var playersArray = []
+var playersArray = [];
+var playerAttacks = [];
 
 function createPlayer(player) {
 	// The player and its settings
@@ -95,23 +94,27 @@ function createPlayer(player) {
 	player.body.collideWorldBounds = true;
 	player.health = 4;
 
+	player.facing = 'right';
 	player.isRebounding = false;
 	player.setEndRebound = null;
 
+	player.attack = createPlayerAttack(player);
+	player.isAttacking = false;
+	
 	player.animations.add('walkLeft', [7, 8, 9, 8, 7, 10, 11, 10], 30);
 	player.animations.add('walkRight', [2, 3, 4, 3, 2, 5, 6, 5], 30);
-	
-	console.log(player);
-	
+		
 	player.controlPlayer = function() {
 		if(player.isRebounding === false) {
 			if (cursors.left.isDown) {
+				player.facing = 'left';
 				//  Move to the left
 				player.body.velocity.x = -150;
 				if (player.body.touching.down) {
 					player.animations.play('walkLeft');
 				}
 			} else if (cursors.right.isDown) {
+				player.facing = 'right';
 				//  Move to the right
 				player.body.velocity.x = 150;
 				if (player.body.touching.down) {
@@ -120,12 +123,19 @@ function createPlayer(player) {
 			} else {
 				//  Stand still
 				player.animations.stop();
-				player.frame = 0;
+				if (player.facing = 'right') {
+					player.frame = 2;
+				} else {
+					player.frame = 7;
+				}
 			}
 			//  Allow the player to jump if they are touching the ground.
 			if (cursors.up.isDown && player.body.touching.down) {
 				player.body.velocity.y = -350;
 			}
+		}
+		if(fireButton.isDown) {
+			player.doAttack();
 		}
 	}
 	player.playerMovement = function() {
@@ -137,7 +147,53 @@ function createPlayer(player) {
 			}
 		}
 	}
+	player.doAttack = function () {
+		if (player.isAttacking === false) {
+			player.isAttacking = true;
+//			player.attackTime = game.time.now;
+			player.attack.render();
+		} else {
+			
+		}
+	}
 }
+
+function createPlayerAttack(player) {
+	playerAttack = game.add.sprite(0, 0, 'punch');
+	playerAttack.enableBody = true;
+	game.physics.arcade.enable(playerAttack);
+	
+	playerAttacks.push(playerAttack);
+
+	playerAttack.attackSource = player;
+	playerAttack.x = -200;
+	playerAttack.y = -200;
+	playerAttack.attackEnd = null;
+	playerAttack.spent = false;
+	
+	playerAttack.damageEnemy = function (guard, attack) {
+		if(playerAttack.spent === false) {
+			guard.damage(2);
+			playerAttack.spent = true;
+		}
+	}
+	playerAttack.testAttack = function () {
+		if (playerAttack.attackSource.isAttacking === true && playerAttack.attackEnd < game.time.now) {
+			playerAttack.attackSource.isAttacking = false;
+			playerAttack.reset(-200, -200);
+		}
+	}
+	playerAttack.render = function() {
+		var xPos = playerAttack.attackSource.x + 40;
+		var yPos = playerAttack.attackSource.y;
+		playerAttack.reset(xPos, yPos);
+		playerAttack.attackEnd = game.time.now + 1000;
+		playerAttack.spent = false;
+	}
+	
+	return playerAttack;
+}
+
 
 function createPlatform(platform) {
 	platformsArray.push(platform)
@@ -156,7 +212,8 @@ function createGuard(platform) {
 	game.physics.arcade.enable(newGuard);
 	newGuard.body.gravity.y = 450;
 	newGuard.body.collideWorldBounds = true;
-
+	newGuard.health = 4;
+	
 	// Custom props
 	newGuard.territory = platform;
 	newGuard.patrolDir = -1; // -1 for left, 1 for right
@@ -217,7 +274,6 @@ function createBoom(player) {
 	
 	if(player.health === 0) {
 		boom.setText('You died...');
-		console.log(game)
 	}
 	
 	var fadeTimer = game.time.create();
@@ -226,7 +282,6 @@ function createBoom(player) {
 	fadeTimer.start();
 	
 	fadeTimer.add(400, function() {
-		console.log('fadeMe');
 		fadeTween.start();
 	});
 	
