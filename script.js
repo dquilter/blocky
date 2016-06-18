@@ -16,7 +16,7 @@ function create() {
 	//  We're going to be using physics, so enable the Arcade Physics system
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 
-	game.stage.backgroundColor = '#FFF';
+	game.stage.backgroundColor = '#0FF';
 	
 	//  The platforms group contains the ground and the platforms we can jump on
 	platformsGroup = game.add.group();
@@ -98,6 +98,8 @@ function createPlayer(player) {
 	player.isRebounding = false;
 	player.setEndRebound = null;
 
+	test = player.facing;
+	
 	player.attack = createPlayerAttack(player);
 	player.isAttacking = false;
 	
@@ -123,7 +125,7 @@ function createPlayer(player) {
 			} else {
 				//  Stand still
 				player.animations.stop();
-				if (player.facing = 'right') {
+				if (player.facing === 'right') {
 					player.frame = 2;
 				} else {
 					player.frame = 7;
@@ -150,7 +152,6 @@ function createPlayer(player) {
 	player.doAttack = function () {
 		if (player.isAttacking === false) {
 			player.isAttacking = true;
-//			player.attackTime = game.time.now;
 			player.attack.render();
 		} else {
 			
@@ -184,8 +185,14 @@ function createPlayerAttack(player) {
 		}
 	}
 	playerAttack.render = function() {
-		var xPos = playerAttack.attackSource.x + 40;
+		var direction = playerAttack.attackSource.facing;
+		var xPos = playerAttack.attackSource.x;
 		var yPos = playerAttack.attackSource.y;
+		if (direction === 'left') {
+			xPos = xPos - 40;
+		} else {
+			xPos = xPos + 40;
+		}
 		playerAttack.reset(xPos, yPos);
 		playerAttack.attackEnd = game.time.now + 1000;
 		playerAttack.spent = false;
