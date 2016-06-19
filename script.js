@@ -24,15 +24,15 @@ function create() {
 	platformsGroup.enableBody = true;
 
 	// Here we create the ground.
-	var ground = platformsGroup.create(0, game.world.height - 64, 'ground');
+	var ground = platformsGroup.create(0, game.world.height - 40, 'ground');
 	//  Scale it to fit the width of the game (the original sprite is 400x32 in size)
 	ground.scale.setTo(2, 2);
 	//  This stops it from falling away when you jump on it
 	ground.body.immovable = true;
 
 	//  Create a platform
-	var platform = platformsGroup.create(400, 400, 'ground');
-	createPlatform(platform);
+	var noPlatforms = Math.floor(game.world.height / 100);
+	createPlatforms(noPlatforms);
 
 	// Create guard
 	platformsArray.forEach(function(elem, index, array) {
@@ -202,17 +202,27 @@ function createPlayerAttack(player) {
 }
 
 
-function createPlatform(platform) {
-	platformsArray.push(platform)
+function createPlatforms(noPlatforms) {
+	console.log(noPlatforms)
+	var platform;
+	var yPos;
+	var xPos;
+	for (i = 0; i < noPlatforms; i++) {
+		yPos = ( (game.world.height / noPlatforms) * (i + 1) ) - 40;
+		xPos = (Math.random() * 800) - 100;
+		platform = platformsGroup.create(xPos, yPos, 'ground');
+		platformsArray.push(platform)
+		
+		platform.body.immovable = true;
+		platform.platformBounds = [xPos + 10, xPos + 400 - 10 - 40]
+		// [leftPos + 10, leftPos + platformLength - 10 - guardWidth]
+	}
 
-	platform.body.immovable = true;
-	platform.platformBounds = [400 + 10, 400 + 400 - 10]
-	// [leftPos + 10, leftPos + platformLength - 10]
 }
 
 function createGuard(platform) {
 	// Set up phaser object and refs
-	var newGuard = game.add.sprite(450, game.world.height - 450, 'star');
+	var newGuard = game.add.sprite(platform.x + 200, platform.y - 40, 'star');
 	guardsArray.push(newGuard)
 
 	// Phaser settings
