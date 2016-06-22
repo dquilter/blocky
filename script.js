@@ -97,8 +97,7 @@ function createPlayer(player) {
 	player.facing = 'right';
 	player.isRebounding = false;
 	player.setEndRebound = null;
-
-	test = player.facing;
+	player.jumping = false;
 	
 	player.attack = createPlayerAttack(player);
 	player.isAttacking = false;
@@ -132,8 +131,19 @@ function createPlayer(player) {
 				}
 			}
 			//  Allow the player to jump if they are touching the ground.
+			if (player.jumping === true && player.body.touching.down) {
+				player.jumping = false;
+			}
 			if (cursors.up.isDown && player.body.touching.down) {
+				player.jumping = true;
 				player.body.velocity.y = -350;
+			}
+			if (!player.body.touching.down && player.jumping === true) {
+				if (player.facing === 'left') {
+					player.frame = 12;
+				} else {
+					player.frame = 13;
+				}
 			}
 		}
 		if(fireButton.isDown) {
