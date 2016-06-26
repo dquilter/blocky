@@ -8,7 +8,7 @@ function preload() {
 	game.load.image('ground', 'assets/platform.png');
 	game.load.image('star', 'assets/star.png');
 	game.load.spritesheet('blockySprite', 'assets/BlockySprite.png', 40, 40);
-	game.load.spritesheet('punch', 'assets/boom.png', 40, 40);
+	game.load.spritesheet('punch', 'assets/punch.png', 40, 40);
 }
 
 function create() {
@@ -182,6 +182,9 @@ function createPlayerAttack(player) {
 	playerAttack.attackEnd = null;
 	playerAttack.spent = false;
 	
+	playerAttack.animations.add('attacking', [1, 2, 3, 4, 5, 6, 7, 8], 10)
+	playerAttack.frame = 1;
+	
 	playerAttack.damageEnemy = function (guard, attack) {
 		if(playerAttack.spent === false) {
 			guard.damage(2);
@@ -192,6 +195,7 @@ function createPlayerAttack(player) {
 		if (playerAttack.attackSource.isAttacking === true && playerAttack.attackEnd < game.time.now) {
 			playerAttack.attackSource.isAttacking = false;
 			playerAttack.reset(-200, -200);
+			playerAttack.frame = 1;
 		}
 	}
 	playerAttack.render = function() {
@@ -204,7 +208,8 @@ function createPlayerAttack(player) {
 			xPos = xPos + 40;
 		}
 		playerAttack.reset(xPos, yPos);
-		playerAttack.attackEnd = game.time.now + 1000;
+		playerAttack.attackEnd = game.time.now + 800;
+		playerAttack.animations.play('attacking');
 		playerAttack.spent = false;
 	}
 	
