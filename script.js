@@ -182,7 +182,8 @@ function createPlayerAttack(player) {
 	playerAttack.attackEnd = null;
 	playerAttack.spent = false;
 	
-	playerAttack.animations.add('attacking', [1, 2, 3, 4, 5, 6, 7, 8], 10)
+	playerAttack.animations.add('attackingRight', [1, 2, 3, 4, 5, 6, 7, 8], 10)
+	playerAttack.animations.add('attackingLeft', [9, 10, 11, 12, 13, 14, 15, 16], 10)
 	playerAttack.frame = 1;
 	
 	playerAttack.damageEnemy = function (guard, attack) {
@@ -198,6 +199,18 @@ function createPlayerAttack(player) {
 			playerAttack.frame = 1;
 		}
 	}
+//	playerAttack.position = function() {
+//		var direction = playerAttack.attackSource.facing;
+//		var xPos = playerAttack.attackSource.x;
+//		var yPos = playerAttack.attackSource.y;
+//		if (direction === 'left') {
+//			xPos = xPos - 40;
+//		} else {
+//			xPos = xPos + 40;
+//		}
+//		playerAttack.reset(xPos, yPos);
+//	}
+
 	playerAttack.render = function() {
 		var direction = playerAttack.attackSource.facing;
 		var xPos = playerAttack.attackSource.x;
@@ -209,7 +222,11 @@ function createPlayerAttack(player) {
 		}
 		playerAttack.reset(xPos, yPos);
 		playerAttack.attackEnd = game.time.now + 800;
-		playerAttack.animations.play('attacking');
+		if (direction === 'left') {
+			playerAttack.animations.play('attackingLeft');
+		} else {
+			playerAttack.animations.play('attackingRight');
+		}
 		playerAttack.spent = false;
 	}
 	
@@ -286,7 +303,7 @@ function createGuard(platform) {
 		
 		player.isRebounding = true;
 		player.setEndRebound = game.time.now + 250;
-		player.body.velocity.x = -100;
+		player.body.velocity.x = 100 * newGuard.patrolDir * -1;
 		player.body.velocity.y = -50;
 		
 		player.damage(1);
