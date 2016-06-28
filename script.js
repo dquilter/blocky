@@ -97,7 +97,7 @@ function createPlayer(player) {
 	player.facing = 'right';
 	player.isRebounding = false;
 	player.setEndRebound = null;
-	player.jumping = false;
+	player.isJumping = false;
 	
 	player.attack = createPlayerAttack(player);
 	player.isAttacking = false;
@@ -131,14 +131,14 @@ function createPlayer(player) {
 				}
 			}
 			//  Allow the player to jump if they are touching the ground.
-			if (player.jumping === true && player.body.touching.down) {
-				player.jumping = false;
+			if (player.isJumping === true && player.body.touching.down) {
+				player.isJumping = false;
 			}
 			if (cursors.up.isDown && player.body.touching.down) {
-				player.jumping = true;
+				player.isJumping = true;
 				player.body.velocity.y = -350;
 			}
-			if (!player.body.touching.down && player.jumping === true) {
+			if (!player.body.touching.down && player.isJumping === true) {
 				if (player.facing === 'left') {
 					player.frame = 12;
 				} else {
@@ -160,7 +160,7 @@ function createPlayer(player) {
 		}
 	}
 	player.doAttack = function () {
-		if (player.isAttacking === false && player.jumping === false) {
+		if (player.isAttacking === false && player.isJumping === false) {
 			player.isAttacking = true;
 			player.attack.render();
 		} else {
@@ -235,7 +235,6 @@ function createPlayerAttack(player) {
 
 
 function createPlatforms(noPlatforms) {
-	console.log(noPlatforms)
 	var platform;
 	var yPos;
 	var xPos;
