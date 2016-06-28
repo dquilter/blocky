@@ -106,7 +106,7 @@ function createPlayer(player) {
 	player.animations.add('walkRight', [2, 3, 4, 3, 2, 5, 6, 5], 30);
 		
 	player.controlPlayer = function() {
-		if(player.isRebounding === false) {
+		if(player.isRebounding === false && player.isAttacking === false) {
 			if (cursors.left.isDown) {
 				player.facing = 'left';
 				//  Move to the left
@@ -160,7 +160,7 @@ function createPlayer(player) {
 		}
 	}
 	player.doAttack = function () {
-		if (player.isAttacking === false) {
+		if (player.isAttacking === false && player.jumping === false) {
 			player.isAttacking = true;
 			player.attack.render();
 		} else {
