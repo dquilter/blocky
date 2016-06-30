@@ -1,0 +1,193 @@
+var createPlayer = require('./createplayer');
+
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
+	preload: preload,
+	create: create,
+	update: update
+});
+
+function preload() {
+	game.load.image('ground', 'assets/platform.png');
+	game.load.image('star', 'assets/star.png');
+	game.load.spritesheet('blockySprite', 'assets/BlockySprite.png', 40, 40);
+	game.load.spritesheet('punch', 'assets/punch.png', 40, 40);
+}
+
+var guardsArray = [];
+var platformsArray = [];
+var playersArray = [];
+var playerAttacks = [];
+
+var gameObjects = {
+	guardsArray: [],
+	platformsArray: [],
+	playersArray: [],
+	playerAttacks: []
+}
+
+function create() {
+	//  We're going to be using physics, so enable the Arcade Physics system
+	game.physics.startSystem(Phaser.Physics.ARCADE);
+
+	game.stage.backgroundColor = '#0FF';
+	
+	//  The platforms group contains the ground and the platforms we can jump on
+	platformsGroup = game.add.group();
+	//  We will enable physics for any object that is created in this group
+	platformsGroup.enableBody = true;
+
+	// Here we create the ground.
+	var ground = platformsGroup.create(0, game.world.height - 40, 'ground');
+	//  Scale it to fit the width of the game (the original sprite is 400x32 in size)
+	ground.scale.setTo(2, 2);
+	//  This stops it from falling away when you jump on it
+	ground.body.immovable = true;
+
+	//  Create a platform
+	var noPlatforms = Math.floor(game.world.height / 100);
+	createPlatforms(noPlatforms);
+
+	// Create guard
+	platformsArray.forEach(function(elem, index, array) {
+		createGuard(elem);
+	});
+
+	// Create the player
+	var player = game.add.sprite(32, game.world.height - 150, 'blockySprite');
+	var player = createPlayer(player, game);
+	playersArray.push(player);
+	playerAttacks.push(player.attack);
+
+	// createPlayer(player)
+
+//	playerAttacksGroup = game.add.group();
+}
+
+function update() {
+
+	playersArray.forEach(function(elem, index, array) {
+		console.log(elem)
+		//  Collide the player and the stars with the platforms
+		game.physics.arcade.collide(elem, platformsGroup);
+		//  Reset the players velocity (movement)
+		elem.playerMovement();
+		elem.controlPlayer();
+		elem.attack.testAttack();
+	});
+
+	//  Collide the guard and the stars with the platforms
+	guardsArray.forEach(function(elem, index, array) {
+		game.physics.arcade.collide(elem, platformsGroup);
+		playersArray.forEach(function(playerElem) {
+			game.physics.arcade.collide(elem, playerElem, elem.playerCollide);
+		});
+		elem.body.velocity.x = 0;
+		elem.patrol();
+
+		playerAttacks.forEach(function(thisAttack) {
+			game.physics.arcade.overlap(elem, thisAttack, thisAttack.damageEnemy); 
+		});
+	});
+
+}
+
+function createPlatforms(noPlatforms) {
+	var platform;
+	var yPos;
+	var xPos;
+	for (i = 0; i < noPlatforms; i++) {
+		yPos = ( (game.world.height / noPlatforms) * (i + 1) ) - 40;
+		xPos = (Math.random() * 800) - 100;
+		platform = platformsGroup.create(xPos, yPos, 'ground');
+		platformsArray.push(platform)
+		
+		platform.body.immovable = true;
+		platform.platformBounds = [xPos + 10, xPos + 400 - 10 - 40]
+		// [leftPos + 10, leftPos + platformLength - 10 - guardWidth]
+	}
+
+}
+
+function createGuard(platform) {
+	// Set up phaser object and refs
+	var newGuard = game.add.sprite(platform.x + 200, platform.y - 40, 'star');
+	guardsArray.push(newGuard)
+
+	// Phaser settings
+	game.physics.arcade.enable(newGuard);
+	newGuard.body.gravity.y = 450;
+	newGuard.body.collideWorldBounds = true;
+	newGuard.health = 4;
+	
+	// Custom props
+	newGuard.territory = platform;
+	newGuard.patrolDir = -1; // -1 for left, 1 for right
+	newGuard.patrolling = false;
+
+	// Custom methods
+	newGuard.patrol = function() {
+		// Start patrolling after drop
+		if (newGuard.patrolling === false && newGuard.body.touching.down) {
+			newGuard.patrolling = true;
+		}
+
+		// Out of bounds left
+		if (newGuard.patrolDir === -1 && newGuard.position.x < newGuard.territory.platformBounds[0]) {
+			newGuard.reverseDir();
+		}
+		// Out of bounds right
+		if (newGuard.patrolDir === 1 && newGuard.position.x > newGuard.territory.platformBounds[1]) {
+			newGuard.reverseDir();
+		}
+		// Screen edge
+		if (newGuard.body.blocked.left || newGuard.body.blocked.right) {
+			newGuard.reverseDir();
+		}
+
+		if (newGuard.patrolling === true) {
+			newGuard.body.velocity.x = 100 * newGuard.patrolDir;
+		}
+
+	},
+	
+	newGuard.reverseDir = function() {
+		newGuard.patrolDir = newGuard.patrolDir * -1;
+	},
+	
+	newGuard.playerCollide = function(guard, player) {
+		newGuard.reverseDir();
+		
+		player.isRebounding = true;
+		player.setEndRebound = game.time.now + 250;
+		player.body.velocity.x = 100 * newGuard.patrolDir * -1;
+		player.body.velocity.y = -50;
+		
+		player.damage(1);
+		createBoom(player);
+	}
+}
+
+function createBoom(player) {
+	var position = player.position;
+	
+	var boom = game.add.text(position.x, position.y, 'BOOM!', {
+		fill: '#FFFFFF',
+		stroke: 'blue',
+		align: 'center',
+		fontSize: '22px'
+	});
+	
+	if(player.health === 0) {
+		boom.setText('You died...');
+	}
+	
+	var fadeTimer = game.time.create();
+	var fadeTween = game.add.tween(boom).to( {alpha: 0}, 400);
+	
+	fadeTimer.start();
+	
+	fadeTimer.add(400, function() {
+		fadeTween.start();
+	});
+	
+}
