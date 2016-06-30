@@ -187,6 +187,7 @@ function createPlayerAttack(player) {
 	playerAttack.frame = 1;
 	
 	playerAttack.damageEnemy = function (guard, attack) {
+		console.log('Overlapped');
 		if(playerAttack.spent === false) {
 			guard.damage(2);
 			playerAttack.spent = true;

@@ -1,4 +1,5 @@
 var createPlayer = require('./createplayer');
+var createBadguy = require('./createbadguy');
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
 	preload: preload,
@@ -13,13 +14,13 @@ function preload() {
 	game.load.spritesheet('punch', 'assets/punch.png', 40, 40);
 }
 
-var guardsArray = [];
+var badguyArray = [];
 var platformsArray = [];
 var playersArray = [];
 var playerAttacks = [];
 
 var gameObjects = {
-	guardsArray: [],
+	badguyArray: [],
 	platformsArray: [],
 	playersArray: [],
 	playerAttacks: []
@@ -49,7 +50,9 @@ function create() {
 
 	// Create guard
 	platformsArray.forEach(function(elem, index, array) {
-		createGuard(elem);
+		var badguy = game.add.sprite(elem.x + 200, elem.y - 40, 'star');
+		var badguy = createBadguy(badguy, elem, game);
+		badguyArray.push(badguy);
 	});
 
 	// Create the player
@@ -66,7 +69,6 @@ function create() {
 function update() {
 
 	playersArray.forEach(function(elem, index, array) {
-		console.log(elem)
 		//  Collide the player and the stars with the platforms
 		game.physics.arcade.collide(elem, platformsGroup);
 		//  Reset the players velocity (movement)
@@ -76,7 +78,7 @@ function update() {
 	});
 
 	//  Collide the guard and the stars with the platforms
-	guardsArray.forEach(function(elem, index, array) {
+	badguyArray.forEach(function(elem, index, array) {
 		game.physics.arcade.collide(elem, platformsGroup);
 		playersArray.forEach(function(playerElem) {
 			game.physics.arcade.collide(elem, playerElem, elem.playerCollide);
@@ -109,62 +111,6 @@ function createPlatforms(noPlatforms) {
 }
 
 function createGuard(platform) {
-	// Set up phaser object and refs
-	var newGuard = game.add.sprite(platform.x + 200, platform.y - 40, 'star');
-	guardsArray.push(newGuard)
-
-	// Phaser settings
-	game.physics.arcade.enable(newGuard);
-	newGuard.body.gravity.y = 450;
-	newGuard.body.collideWorldBounds = true;
-	newGuard.health = 4;
-	
-	// Custom props
-	newGuard.territory = platform;
-	newGuard.patrolDir = -1; // -1 for left, 1 for right
-	newGuard.patrolling = false;
-
-	// Custom methods
-	newGuard.patrol = function() {
-		// Start patrolling after drop
-		if (newGuard.patrolling === false && newGuard.body.touching.down) {
-			newGuard.patrolling = true;
-		}
-
-		// Out of bounds left
-		if (newGuard.patrolDir === -1 && newGuard.position.x < newGuard.territory.platformBounds[0]) {
-			newGuard.reverseDir();
-		}
-		// Out of bounds right
-		if (newGuard.patrolDir === 1 && newGuard.position.x > newGuard.territory.platformBounds[1]) {
-			newGuard.reverseDir();
-		}
-		// Screen edge
-		if (newGuard.body.blocked.left || newGuard.body.blocked.right) {
-			newGuard.reverseDir();
-		}
-
-		if (newGuard.patrolling === true) {
-			newGuard.body.velocity.x = 100 * newGuard.patrolDir;
-		}
-
-	},
-	
-	newGuard.reverseDir = function() {
-		newGuard.patrolDir = newGuard.patrolDir * -1;
-	},
-	
-	newGuard.playerCollide = function(guard, player) {
-		newGuard.reverseDir();
-		
-		player.isRebounding = true;
-		player.setEndRebound = game.time.now + 250;
-		player.body.velocity.x = 100 * newGuard.patrolDir * -1;
-		player.body.velocity.y = -50;
-		
-		player.damage(1);
-		createBoom(player);
-	}
 }
 
 function createBoom(player) {

@@ -16,7 +16,7 @@ module.exports = function(player, game) {
 	player.body.bounce.x = 1;
 	player.body.gravity.y = 450;
 	player.body.collideWorldBounds = true;
-	player.health = 4;
+	player.health = 800;
 
 	player.facing = 'right';
 	player.isRebounding = false;
