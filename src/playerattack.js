@@ -25,6 +25,7 @@ module.exports = function(player, game) {
 	attack.testAttack = function () {
 		if (attack.player.isAttacking === true && attack.attackEnd < game.time.now) {
 			attack.player.isAttacking = false;
+			attack.player.endAttack();
 			attack.reset(-200, -200);
 			attack.frame = 1;
 		}

@@ -28,7 +28,7 @@ module.exports = function(player, game) {
 	
 	player.animations.add('walkLeft', [7, 8, 9, 8, 7, 10, 11, 10], 30);
 	player.animations.add('walkRight', [2, 3, 4, 3, 2, 5, 6, 5], 30);
-		
+	
 	player.controlPlayer = function() {
 		if(player.isRebounding === false && player.isAttacking === false) {
 			if (cursors.left.isDown) {
@@ -48,11 +48,7 @@ module.exports = function(player, game) {
 			} else {
 				//  Stand still
 				player.animations.stop();
-				if (player.facing === 'right') {
-					player.frame = 2;
-				} else {
-					player.frame = 7;
-				}
+				player.setIdle();
 			}
 			//  Allow the player to jump if they are touching the ground.
 			if (player.isJumping === true && player.body.touching.down) {
@@ -86,9 +82,22 @@ module.exports = function(player, game) {
 	player.doAttack = function () {
 		if (player.isAttacking === false && player.isJumping === false) {
 			player.isAttacking = true;
+			player.frame = 14;
 			player.attack.render();
 		} else {
 			
+		}
+	}
+	player.endAttack = function () {
+		if(player.frame === 14) {
+			player.setIdle();
+		}
+	}
+	player.setIdle = function () {
+		if (player.facing === 'right') {
+			player.frame = 2;
+		} else {
+			player.frame = 7;
 		}
 	}
 	
