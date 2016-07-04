@@ -79,10 +79,12 @@ module.exports = function(player, game) {
 			}
 		}
 	}
+	player.animations.add('punch', [14, 15, 16], 24);
 	player.doAttack = function () {
 		if (player.isAttacking === false && player.isJumping === false) {
 			player.isAttacking = true;
-			player.frame = 14;
+			player.animations.play('punch');
+//			player.frame = 14;
 			player.attack.render();
 		} else {
 			

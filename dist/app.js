@@ -139,10 +139,12 @@ module.exports = function(player, game) {
 			}
 		}
 	}
+	player.animations.add('punch', [14, 15, 16], 24);
 	player.doAttack = function () {
 		if (player.isAttacking === false && player.isJumping === false) {
 			player.isAttacking = true;
-			player.frame = 14;
+			player.animations.play('punch');
+//			player.frame = 14;
 			player.attack.render();
 		} else {
 			
@@ -242,7 +244,7 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
 
 function preload() {
 	game.load.image('ground', 'assets/platform.png');
-	game.load.image('star', 'assets/star.png');
+	game.load.image('star', 'assets/Badguy.png');
 	game.load.spritesheet('blockySprite', 'assets/BlockySprite.png', 40, 40);
 	game.load.spritesheet('punch', 'assets/punch.png', 40, 40);
 }
