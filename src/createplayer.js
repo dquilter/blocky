@@ -79,12 +79,17 @@ module.exports = function(player, game) {
 			}
 		}
 	}
-	player.animations.add('punch', [14, 15, 16], 24);
+	
+	player.animations.add('punchLeft', [17, 18, 19], 24);
+	player.animations.add('punchRight', [14, 15, 16], 24);
 	player.doAttack = function () {
 		if (player.isAttacking === false && player.isJumping === false) {
 			player.isAttacking = true;
-			player.animations.play('punch');
-//			player.frame = 14;
+			if (player.facing === 'left') {
+				player.animations.play('punchLeft');
+			} else {
+				player.animations.play('punchRight');
+			}
 			player.attack.render();
 		} else {
 			
