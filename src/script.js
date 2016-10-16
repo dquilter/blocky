@@ -9,8 +9,8 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
 
 function preload() {
 	game.load.image('ground', 'assets/platform.png');
-	game.load.image('star', 'assets/Badguy.png');
-	game.load.spritesheet('blockySprite', 'assets/BlockySprite.png', 40, 40);
+	game.load.spritesheet('badguy', 'assets/blockbot-sprite.png', 40, 40);
+	game.load.spritesheet('blockySprite', 'assets/blocky-sprite.png', 40, 40);
 	game.load.spritesheet('punch', 'assets/punch.png', 40, 40);
 }
 
@@ -50,7 +50,7 @@ function create() {
 
 	// Create guard
 	platformsArray.forEach(function(elem, index, array) {
-		var badguy = game.add.sprite(elem.x + 200, elem.y - 40, 'star');
+		var badguy = game.add.sprite(elem.x + 200, elem.y - 40, 'badguy');
 		var badguy = createBadguy(badguy, elem, game);
 		badguyArray.push(badguy);
 	});
@@ -111,29 +111,4 @@ function createPlatforms(noPlatforms) {
 }
 
 function createGuard(platform) {
-}
-
-function createBoom(player) {
-	var position = player.position;
-	
-	var boom = game.add.text(position.x, position.y, 'BOOM!', {
-		fill: '#FFFFFF',
-		stroke: 'blue',
-		align: 'center',
-		fontSize: '22px'
-	});
-	
-	if(player.health === 0) {
-		boom.setText('You died...');
-	}
-	
-	var fadeTimer = game.time.create();
-	var fadeTween = game.add.tween(boom).to( {alpha: 0}, 400);
-	
-	fadeTimer.start();
-	
-	fadeTimer.add(400, function() {
-		fadeTween.start();
-	});
-	
 }
