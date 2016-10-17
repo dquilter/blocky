@@ -20,18 +20,16 @@ module.exports = function(badguy, platform, game) {
 		// Start patrolling after drop
 		if (badguy.patrolling === false && badguy.body.touching.down) {
 			badguy.patrolling = true;
+			badguy.animations.play('walkLeft', 30, true);
 		}
 
 		// Out of bounds left
 		if (badguy.patrolDir === -1 && badguy.position.x < badguy.territory.platformBounds[0]) {
 			badguy.reverseDir();
-			badguy.animations.play('walkRight', 30, true);
 		}
 		// Out of bounds right
 		if (badguy.patrolDir === 1 && badguy.position.x > badguy.territory.platformBounds[1]) {
 			badguy.reverseDir();
-			badguy.animations.play('walkLeft', 30, true);
-
 		}
 		// Screen edge
 		if (badguy.body.blocked.left || badguy.body.blocked.right) {
@@ -46,6 +44,12 @@ module.exports = function(badguy, platform, game) {
 	
 	badguy.reverseDir = function() {
 		badguy.patrolDir = badguy.patrolDir * -1;
+		if (badguy.patrolDir === -1) {
+			badguy.animations.play('walkLeft', 30, true);
+		} else {
+			badguy.animations.play('walkRight', 30, true);
+		}
+
 	},
 	
 	badguy.playerCollide = function(guard, player) {
