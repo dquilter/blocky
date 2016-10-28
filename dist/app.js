@@ -11,12 +11,16 @@ module.exports = function(badguy, platform, game) {
 	badguy.territory = platform;
 	badguy.patrolDir = -1; // -1 for left, 1 for right
 	badguy.patrolling = false;
+	
+	badguy.animations.add('walkLeft', [7, 8, 9, 8, 7, 10, 11, 10], 30);
+	badguy.animations.add('walkRight', [2, 3, 4, 3, 2, 5, 6, 5], 30);
 
 	// Custom methods
 	badguy.patrol = function() {
 		// Start patrolling after drop
 		if (badguy.patrolling === false && badguy.body.touching.down) {
 			badguy.patrolling = true;
+			badguy.animations.play('walkLeft', 30, true);
 		}
 
 		// Out of bounds left
@@ -40,6 +44,12 @@ module.exports = function(badguy, platform, game) {
 	
 	badguy.reverseDir = function() {
 		badguy.patrolDir = badguy.patrolDir * -1;
+		if (badguy.patrolDir === -1) {
+			badguy.animations.play('walkLeft', 30, true);
+		} else {
+			badguy.animations.play('walkRight', 30, true);
+		}
+
 	},
 	
 	badguy.playerCollide = function(guard, player) {
@@ -51,7 +61,32 @@ module.exports = function(badguy, platform, game) {
 		player.body.velocity.y = -50;
 		
 		player.damage(1);
-		createBoom(player);
+		badguy.createBoom(player);
+	}
+	
+	badguy.createBoom = function(player) {
+		var position = player.position;
+
+		var boom = game.add.text(position.x, position.y, 'BOOM!', {
+			fill: '#FFFFFF',
+			stroke: 'blue',
+			align: 'center',
+			fontSize: '22px'
+		});
+
+		if(player.health === 0) {
+			boom.setText('You died...');
+		}
+
+		var fadeTimer = game.time.create();
+		var fadeTween = game.add.tween(boom).to( {alpha: 0}, 400);
+
+		fadeTimer.start();
+
+		fadeTimer.add(400, function() {
+			fadeTween.start();
+		});
+
 	}
 
 	return badguy;
@@ -139,12 +174,17 @@ module.exports = function(player, game) {
 			}
 		}
 	}
-	player.animations.add('punch', [14, 15, 16], 24);
+	
+	player.animations.add('punchLeft', [17, 18, 19], 24);
+	player.animations.add('punchRight', [14, 15, 16], 24);
 	player.doAttack = function () {
 		if (player.isAttacking === false && player.isJumping === false) {
 			player.isAttacking = true;
-			player.animations.play('punch');
-//			player.frame = 14;
+			if (player.facing === 'left') {
+				player.animations.play('punchLeft');
+			} else {
+				player.animations.play('punchRight');
+			}
 			player.attack.render();
 		} else {
 			
@@ -244,8 +284,8 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
 
 function preload() {
 	game.load.image('ground', 'assets/platform.png');
-	game.load.image('star', 'assets/Badguy.png');
-	game.load.spritesheet('blockySprite', 'assets/BlockySprite.png', 40, 40);
+	game.load.spritesheet('badguy', 'assets/blockbot-sprite.png', 40, 40);
+	game.load.spritesheet('blockySprite', 'assets/blocky-sprite.png', 40, 40);
 	game.load.spritesheet('punch', 'assets/punch.png', 40, 40);
 }
 
@@ -285,7 +325,7 @@ function create() {
 
 	// Create guard
 	platformsArray.forEach(function(elem, index, array) {
-		var badguy = game.add.sprite(elem.x + 200, elem.y - 40, 'star');
+		var badguy = game.add.sprite(elem.x + 200, elem.y - 40, 'badguy');
 		var badguy = createBadguy(badguy, elem, game);
 		badguyArray.push(badguy);
 	});
@@ -346,30 +386,5 @@ function createPlatforms(noPlatforms) {
 }
 
 function createGuard(platform) {
-}
-
-function createBoom(player) {
-	var position = player.position;
-	
-	var boom = game.add.text(position.x, position.y, 'BOOM!', {
-		fill: '#FFFFFF',
-		stroke: 'blue',
-		align: 'center',
-		fontSize: '22px'
-	});
-	
-	if(player.health === 0) {
-		boom.setText('You died...');
-	}
-	
-	var fadeTimer = game.time.create();
-	var fadeTween = game.add.tween(boom).to( {alpha: 0}, 400);
-	
-	fadeTimer.start();
-	
-	fadeTimer.add(400, function() {
-		fadeTween.start();
-	});
-	
 }
 },{"./createbadguy":1,"./createplayer":2}]},{},[1,2,3,4]);
