@@ -10,13 +10,14 @@ module.exports = function(player, game) {
 	// Set up keyboard bindings
 	var cursors = game.input.keyboard.createCursorKeys();
 	var fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+	var testAnim = game.input.keyboard.addKey(Phaser.Keyboard.A);
 	
 	//  Player physics properties
 	player.body.bounce.y = 0.2;
 	player.body.bounce.x = 1;
 	player.body.gravity.y = 450;
 	player.body.collideWorldBounds = true;
-	player.health = 800;
+	player.health = 1;
 
 	player.facing = 'right';
 	player.isRebounding = false;
@@ -26,11 +27,34 @@ module.exports = function(player, game) {
 	player.attack = createPlayerAttack(player, game);
 	player.isAttacking = false;
 	
+	player.isDying = false;
+	
 	player.animations.add('walkLeft', [7, 8, 9, 8, 7, 10, 11, 10], 30);
 	player.animations.add('walkRight', [2, 3, 4, 3, 2, 5, 6, 5], 30);
+	player.animations.add('death', [20, 21, 22, 23], 15);
+	
+	player.kill = function() {
+		// This replaces Phasers existing kill function
+		player.animations._anims.death.onComplete.add(function() {
+			player.alive = false;
+			player.exists = false;
+			player.visible = false;
+
+			if (player.events) {
+				player.events.onKilled.dispatch(player);
+			}
+
+			return player;
+		}, this)
+		
+		player.isDying = true;
+		player.animations.play('death');
+
+	};
 	
 	player.controlPlayer = function() {
-		if(player.isRebounding === false && player.isAttacking === false) {
+		// TODO: This needs refactoring
+		if(player.isRebounding === false && player.isAttacking === false && player.isDying === false) {
 			if (cursors.left.isDown) {
 				player.facing = 'left';
 				//  Move to the left
@@ -68,6 +92,9 @@ module.exports = function(player, game) {
 		}
 		if(fireButton.isDown) {
 			player.doAttack();
+		}
+		if(testAnim && testAnim.isDown) {
+			console.log('Test');
 		}
 	}
 	player.playerMovement = function() {

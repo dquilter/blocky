@@ -59,8 +59,15 @@ module.exports = function(badguy, platform, game) {
 		player.body.velocity.x = 100 * badguy.patrolDir * -1;
 		player.body.velocity.y = -50;
 		
-		player.damage(1);
 		badguy.createBoom(player);
+		
+		// TODO: Refactor me to use a signal
+		var damageTimer = game.time.create();
+		damageTimer.start();
+		damageTimer.add(250, function() {
+			player.damage(1);
+		});
+		
 	}
 	
 	badguy.createBoom = function(player) {
