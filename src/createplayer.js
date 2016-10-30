@@ -1,6 +1,7 @@
 module.exports = function(player, game) {
 	
 	var createPlayerAttack = require('./playerattack');
+	var createPlayerHealthbar = require('./playerhealth');
 	
 	// The player and its settings
 	//gameObjects.playersArray.push(player)
@@ -17,7 +18,7 @@ module.exports = function(player, game) {
 	player.body.bounce.x = 1;
 	player.body.gravity.y = 450;
 	player.body.collideWorldBounds = true;
-	player.health = 1;
+	player.health = 3;
 
 	player.facing = 'right';
 	player.isRebounding = false;
@@ -26,12 +27,26 @@ module.exports = function(player, game) {
 	
 	player.attack = createPlayerAttack(player, game);
 	player.isAttacking = false;
+	player.healthbar = createPlayerHealthbar(player, game);
 	
 	player.isDying = false;
 	
 	player.animations.add('walkLeft', [7, 8, 9, 8, 7, 10, 11, 10], 30);
 	player.animations.add('walkRight', [2, 3, 4, 3, 2, 5, 6, 5], 30);
 	player.animations.add('death', [20, 20, 21, 22, 23], 5);
+	
+	player.damage = function (amount) {
+		// This replaces Phasers existing damage function
+		if (this.alive) {
+			this.health -= amount;
+			player.healthbar.loseLife();
+			if (this.health <= 0) {
+				this.kill();
+			}
+		} 
+
+		return this;
+	},
 	
 	player.kill = function() {
 		// This replaces Phasers existing kill function
@@ -104,6 +119,7 @@ module.exports = function(player, game) {
 			console.log('Test');
 		}
 	}
+	
 	player.playerMovement = function() {
 		if (!player.isRebounding) {
 			player.body.velocity.x = 0;
@@ -130,11 +146,13 @@ module.exports = function(player, game) {
 			
 		}
 	}
+	
 	player.endAttack = function () {
 		if(player.frame === 14) {
 			player.setIdle();
 		}
 	}
+	
 	player.setIdle = function () {
 		if (player.facing === 'right') {
 			player.frame = 2;

@@ -12,6 +12,7 @@ function preload() {
 	game.load.spritesheet('badguy', 'assets/blockbot-sprite.png', 40, 40);
 	game.load.spritesheet('blockySprite', 'assets/blocky-sprite.png', 40, 40);
 	game.load.spritesheet('punch', 'assets/punch.png', 40, 40);
+	game.load.spritesheet('heart', 'assets/life.png', 18, 18);
 }
 
 var badguyArray = [];

@@ -103,6 +103,7 @@ module.exports = function(badguy, platform, game) {
 module.exports = function(player, game) {
 	
 	var createPlayerAttack = require('./playerattack');
+	var createPlayerHealthbar = require('./playerhealth');
 	
 	// The player and its settings
 	//gameObjects.playersArray.push(player)
@@ -119,7 +120,7 @@ module.exports = function(player, game) {
 	player.body.bounce.x = 1;
 	player.body.gravity.y = 450;
 	player.body.collideWorldBounds = true;
-	player.health = 1;
+	player.health = 3;
 
 	player.facing = 'right';
 	player.isRebounding = false;
@@ -128,12 +129,26 @@ module.exports = function(player, game) {
 	
 	player.attack = createPlayerAttack(player, game);
 	player.isAttacking = false;
+	player.healthbar = createPlayerHealthbar(player, game);
 	
 	player.isDying = false;
 	
 	player.animations.add('walkLeft', [7, 8, 9, 8, 7, 10, 11, 10], 30);
 	player.animations.add('walkRight', [2, 3, 4, 3, 2, 5, 6, 5], 30);
 	player.animations.add('death', [20, 20, 21, 22, 23], 5);
+	
+	player.damage = function (amount) {
+		// This replaces Phasers existing damage function
+		if (this.alive) {
+			this.health -= amount;
+			player.healthbar.loseLife();
+			if (this.health <= 0) {
+				this.kill();
+			}
+		} 
+
+		return this;
+	},
 	
 	player.kill = function() {
 		// This replaces Phasers existing kill function
@@ -206,6 +221,7 @@ module.exports = function(player, game) {
 			console.log('Test');
 		}
 	}
+	
 	player.playerMovement = function() {
 		if (!player.isRebounding) {
 			player.body.velocity.x = 0;
@@ -232,11 +248,13 @@ module.exports = function(player, game) {
 			
 		}
 	}
+	
 	player.endAttack = function () {
 		if(player.frame === 14) {
 			player.setIdle();
 		}
 	}
+	
 	player.setIdle = function () {
 		if (player.facing === 'right') {
 			player.frame = 2;
@@ -247,7 +265,7 @@ module.exports = function(player, game) {
 	
 	return player;
 };
-},{"./playerattack":3}],3:[function(require,module,exports){
+},{"./playerattack":3,"./playerhealth":4}],3:[function(require,module,exports){
 module.exports = function(player, game) {
 	
 	attack = game.add.sprite(0, 0, 'punch');
@@ -315,6 +333,32 @@ module.exports = function(player, game) {
 
 }
 },{}],4:[function(require,module,exports){
+module.exports = function(player, game) {
+
+	var healthbar = {};
+	healthbar.hearts = [];
+	healthbar.totalHealth = player.health;
+	
+	var thisHealth;
+	for (i = 0; i < player.health; i++) {
+		if (i === 0) {
+			thisHealth = game.add.sprite(18, 18, 'heart');
+		}else {
+			thisHealth = game.add.sprite((18 * (i + 1)) + (i * 5), 18, 'heart');
+		}
+		healthbar.hearts.push(thisHealth);
+		thisHealth.frame = 0;
+	}
+	
+	healthbar.loseLife = function(health) {
+		var targetHeart = healthbar.totalHealth - (player.health + 1)
+		
+		healthbar.hearts[targetHeart].frame = 2;
+	}
+	
+	return healthbar;
+}
+},{}],5:[function(require,module,exports){
 var createPlayer = require('./createplayer');
 var createBadguy = require('./createbadguy');
 
@@ -329,6 +373,7 @@ function preload() {
 	game.load.spritesheet('badguy', 'assets/blockbot-sprite.png', 40, 40);
 	game.load.spritesheet('blockySprite', 'assets/blocky-sprite.png', 40, 40);
 	game.load.spritesheet('punch', 'assets/punch.png', 40, 40);
+	game.load.spritesheet('heart', 'assets/life.png', 18, 18);
 }
 
 var badguyArray = [];
@@ -429,4 +474,4 @@ function createPlatforms(noPlatforms) {
 
 function createGuard(platform) {
 }
-},{"./createbadguy":1,"./createplayer":2}]},{},[1,2,3,4]);
+},{"./createbadguy":1,"./createplayer":2}]},{},[1,2,3,4,5]);
