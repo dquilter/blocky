@@ -31,20 +31,27 @@ module.exports = function(player, game) {
 	
 	player.animations.add('walkLeft', [7, 8, 9, 8, 7, 10, 11, 10], 30);
 	player.animations.add('walkRight', [2, 3, 4, 3, 2, 5, 6, 5], 30);
-	player.animations.add('death', [20, 21, 22, 23], 15);
+	player.animations.add('death', [20, 20, 21, 22, 23], 5);
 	
 	player.kill = function() {
 		// This replaces Phasers existing kill function
 		player.animations._anims.death.onComplete.add(function() {
 			player.alive = false;
-			player.exists = false;
-			player.visible = false;
 
-			if (player.events) {
-				player.events.onKilled.dispatch(player);
-			}
+			var fadeTween = game.add.tween(player).to( {alpha: 0}, 400);
+			fadeTween.start();
+			
+			fadeTween.onComplete.add(function() {
+				player.exists = false;
+				player.visible = false;
 
-			return player;
+				if (player.events) {
+					player.events.onKilled.dispatch(player);
+				}
+				
+				return player;
+			})
+
 		}, this)
 		
 		player.isDying = true;
@@ -103,6 +110,7 @@ module.exports = function(player, game) {
 		} else {
 			if (game.time.now > player.setEndRebound) {
 				player.isRebounding = false;
+				player.reboundDone.dispatch();
 			}
 		}
 	}

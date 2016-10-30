@@ -62,12 +62,12 @@ module.exports = function(badguy, platform, game) {
 		badguy.createBoom(player);
 		
 		// TODO: Refactor me to use a signal
-		var damageTimer = game.time.create();
-		damageTimer.start();
-		damageTimer.add(250, function() {
+		var reboundDone = new Phaser.Signal();
+		player.reboundDone = reboundDone;
+		// Signal dispatched within player
+		reboundDone.add(function() {
 			player.damage(1);
-		});
-		
+		}, this);
 	}
 	
 	badguy.createBoom = function(player) {
